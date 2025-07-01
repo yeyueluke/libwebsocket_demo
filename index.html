@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>摄像头实时视频</title>
+    <style>
+        body { text-align: center; background: #222; color: white; }
+        img { width: 640px; height: 480px; background: black; }
+    </style>
+</head>
+<body>
+    <h2>摄像头实时视频（JPG流）</h2>
+    <img id="camera" />
+    <script>
+        const ws = new WebSocket("ws://192.168.1.104:9000"); // 替换为设备A IP
+        ws.binaryType = "blob";
+
+        const img = document.getElementById("camera");
+
+        ws.onopen = () => {
+            console.log("WebSocket连接成功");
+        };
+
+        ws.onmessage = event => {
+            if (!(event.data instanceof Blob)) return;
+
+            const url = URL.createObjectURL(event.data);
+            const tmpImg = new Image();
+
+            tmpImg.onload = () => {
+                img.src = url;
+                if (img._oldUrl) URL.revokeObjectURL(img._oldUrl);
+                img._oldUrl = url;
+            };
+
+            tmpImg.src = url;
+        };
+
+        ws.onerror = (err) => {
+            console.error("WebSocket错误:", err);
+        };
+
+        ws.onclose = () => {
+            console.warn("WebSocket连接关闭");
+        };
+    </script>
+</body>
+</html>
+
